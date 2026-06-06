@@ -13,10 +13,24 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
+    - name: Setup Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Setup Node.js Environment
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+
+    - name: Clean Conflicting Configurations
+      run: |
+        rm -f package.json package-lock.json
+        rm -rf node_modules android
 
     - name: Create Automated Web Container
       run: |
@@ -26,21 +40,12 @@ jobs:
     - name: Install Core Packaging Tools & Android Platform
       run: |
         npm init -y
-        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest --legacy-peer-deps
 
     - name: Initialize Capacitor Android Platform
       run: |
         npx cap init Odysseus com.moayad.odysseus --web-dir=dist
         npx cap add android
-
-    - name: Setup Java JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
 
     - name: Sync Assets to Android App
       run: npx cap sync android
@@ -56,3 +61,4 @@ jobs:
       with:
         name: Odysseus-WebView-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        
