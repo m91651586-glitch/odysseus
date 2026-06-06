@@ -46,9 +46,9 @@ jobs:
         }
         EOF
 
-    - name: Create Automated Web Container
+    - name: Create Automated Web Container with Odysseus URL
       run: |
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Odysseus AI</title><script>window.location.href = "https://google.com";</script></head><body><h2 style="text-align:center;margin-top:100px;font-family:sans-serif;color:#333;">Connecting to Odysseus Server...</h2></body></html>' > dist/index.html
+        echo '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Odysseus AI</title><style>body{margin:0;padding:0;background-color:#0b0f19;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;overflow:hidden;}.spinner{border:4px solid rgba(255,255,255,0.1);width:50px;height:50px;border-radius:50%;border-left-color:#3b82f6;animation:spin 1s linear infinite;margin:0 auto 20px;}@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}p{font-size:1.1rem;opacity:0.85;text-align:center;}</style><script>window.location.href = "https://pewdiepie-archdaemon.github.io/odysseus/";</script></head><body><div><div class="spinner"></div><p>جاري تشغيل بيئة Odysseus الذكية...</p></div></body></html>' > dist/index.html
 
     - name: Install Hardened Dependencies
       run: |
