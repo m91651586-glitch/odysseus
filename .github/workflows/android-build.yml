@@ -23,10 +23,10 @@ jobs:
         mkdir -p dist
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Odysseus AI</title><script>window.location.href = "https://google.com";</script></head><body><h2 style="text-align:center;margin-top:100px;font-family:sans-serif;color:#333;">Connecting to Odysseus Server...</h2></body></html>' > dist/index.html
 
-    - name: Install Core Packaging Tools
+    - name: Install Core Packaging Tools & Android Platform
       run: |
         npm init -y
-        npm install @capacitor/core @capacitor/cli
+        npm install @capacitor/core @capacitor/cli @capacitor/android
 
     - name: Initialize Capacitor Android Platform
       run: |
@@ -56,4 +56,3 @@ jobs:
       with:
         name: Odysseus-WebView-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
-        
