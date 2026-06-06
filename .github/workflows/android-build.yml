@@ -24,34 +24,49 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Clean and Initialize Build Environment
+    - name: Generate Clean Project Structure
       run: |
         rm -f package.json package-lock.json
         rm -rf node_modules android dist
-        npm init -y
+        mkdir -p dist
+        
+        # كتابة ملف هندسي ثابت لمنع مشاكل تعارض الإصدارات تلقائياً
+        cat << 'EOF' > package.json
+        {
+          "name": "odysseus-webview",
+          "version": "1.0.0",
+          "private": true,
+          "dependencies": {
+            "@capacitor/android": "^6.0.0",
+            "@capacitor/core": "^6.0.0"
+          },
+          "devDependencies": {
+            "@capacitor/cli": "^6.0.0"
+          }
+        }
+        EOF
 
     - name: Create Automated Web Container
       run: |
-        mkdir -p dist
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Odysseus AI</title><script>window.location.href = "https://google.com";</script></head><body><h2 style="text-align:center;margin-top:100px;font-family:sans-serif;color:#333;">Connecting to Odysseus Server...</h2></body></html>' > dist/index.html
 
-    - name: Install Capacitor Dependencies
+    - name: Install Hardened Dependencies
       run: |
-        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest --legacy-peer-deps
+        npm install --legacy-peer-deps
 
-    - name: Initialize Capacitor Project
+    - name: Initialize Capacitor Framework
       run: |
         npx cap init Odysseus com.moayad.odysseus --web-dir=dist
 
-    - name: Add Android Platform
+    - name: Inject Android Platform
       run: |
         npx cap add android
 
-    - name: Sync Web Assets to Android
+    - name: Sync Production Assets
       run: |
         npx cap sync android
 
-    - name: Build APK via Gradle
+    - name: Compile and Build APK via Gradle
       run: |
         cd android
         chmod +x gradlew
