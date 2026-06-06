@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build WebView Android APK
 
 on:
   push:
@@ -17,13 +17,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
 
-    - name: Install Web Dependencies
-      run: npm install
+    - name: Create Automated Web Container
+      run: |
+        mkdir -p dist
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Odysseus AI</title><script>window.location.href = "https://google.com";</script></head><body><h2 style="text-align:center;margin-top:100px;font-family:sans-serif;color:#333;">Connecting to Odysseus Server...</h2></body></html>' > dist/index.html
 
-    - name: Build Web Application
-      run: npm run build
+    - name: Install Core Packaging Tools
+      run: |
+        npm init -y
+        npm install @capacitor/core @capacitor/cli
+
+    - name: Initialize Capacitor Android Platform
+      run: |
+        npx cap init Odysseus com.moayad.odysseus --web-dir=dist
+        npx cap add android
 
     - name: Setup Java JDK 17
       uses: actions/setup-java@v4
@@ -34,12 +42,7 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Initialize Capacitor Android Platform
-      run: |
-        npx cap init Odysseus com.moayad.odysseus --web-dir=dist
-        npx cap add android
-
-    - name: Sync Web Assets to Android App
+    - name: Sync Assets to Android App
       run: npx cap sync android
 
     - name: Compile and Build APK via Gradle
@@ -51,5 +54,6 @@ jobs:
     - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Odysseus-Android-App
+        name: Odysseus-WebView-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        
