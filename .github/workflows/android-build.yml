@@ -19,38 +19,39 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Setup Node.js Environment
       uses: actions/setup-node@v4
       with:
         node-version: '20'
 
-    - name: Clean Conflicting Configurations
+    - name: Clean and Initialize Build Environment
       run: |
         rm -f package.json package-lock.json
-        rm -rf node_modules android
+        rm -rf node_modules android dist
+        npm init -y
 
     - name: Create Automated Web Container
       run: |
         mkdir -p dist
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Odysseus AI</title><script>window.location.href = "https://google.com";</script></head><body><h2 style="text-align:center;margin-top:100px;font-family:sans-serif;color:#333;">Connecting to Odysseus Server...</h2></body></html>' > dist/index.html
 
-    - name: Install Core Packaging Tools & Android Platform
+    - name: Install Capacitor Dependencies
       run: |
-        npm init -y
         npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest --legacy-peer-deps
 
-    - name: Initialize Capacitor Android Platform
+    - name: Initialize Capacitor Project
       run: |
         npx cap init Odysseus com.moayad.odysseus --web-dir=dist
+
+    - name: Add Android Platform
+      run: |
         npx cap add android
 
-    - name: Sync Assets to Android App
-      run: npx cap sync android
+    - name: Sync Web Assets to Android
+      run: |
+        npx cap sync android
 
-    - name: Compile and Build APK via Gradle
+    - name: Build APK via Gradle
       run: |
         cd android
         chmod +x gradlew
@@ -61,4 +62,3 @@ jobs:
       with:
         name: Odysseus-WebView-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
-        
