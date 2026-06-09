@@ -1,140 +1,36 @@
-name: Build Hardened Pure Offline APK
+name: Build Android APK
 
 on:
   push:
-    branches: [ main, master, dev ]
-  workflow_dispatch:
+    branches:
+      - main
+      - dev
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Java JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Setup Node.js Environment
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      # هذه هي الخطوة الأهم التي طلبناها لنقل ملفك الجديد
+      - name: Prepare Web Assets
+        run: |
+          mkdir -p app/src/main/assets/
+          cp static/main.html app/src/main/assets/index.html
 
-    - name: Generate Clean Offline Shell
-      run: |
-        rm -f package.json package-lock.json
-        rm -rf node_modules android dist
-        mkdir -p dist
-        
-        # بناء ملف التعريف الأساسي لإدارة الحزمة الرسومية وتجنب التعارض
-        cat << 'EOF' > package.json
-        {
-          "name": "odysseus-pure-offline",
-          "version": "1.0.0",
-          "private": true,
-          "dependencies": {
-            "@capacitor/android": "^6.0.0",
-            "@capacitor/core": "^6.0.0"
-          },
-          "devDependencies": {
-            "@capacitor/cli": "^6.0.0"
-          }
-        }
-        EOF
+      - name: Build with Gradle
+        run: ./gradlew assembleDebug
 
-    - name: Inject Local Application Core (No Web Required)
-      run: |
-        # هنا يتم حقن شيفرة الأداة الرسومية لتعمل محلياً من ذاكرة الهاتف فوراً
-        cat << 'EOF' > dist/index.html
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <title>Odysseus Offline Platform</title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    background-color: #0b0f19;
-                    color: #ffffff;
-                    font-family: system-ui, -apple-system, sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    overflow: hidden;
-                }
-                .card {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    padding: 30px;
-                    border-radius: 16px;
-                    text-align: center;
-                    max-width: 85%;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                }
-                h1 {
-                    font-size: 1.8rem;
-                    margin-bottom: 10px;
-                    color: #3b82f6;
-                }
-                p {
-                    font-size: 1rem;
-                    opacity: 0.8;
-                    line-height: 1.6;
-                }
-                .status-badge {
-                    background: #10b981;
-                    color: #fff;
-                    padding: 6px 14px;
-                    border-radius: 20px;
-                    font-size: 0.85rem;
-                    display: inline-block;
-                    margin-top: 15px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h1>منصة Odysseus الذكية</h1>
-                <p>تم تشغيل الأداة بنجاح كامل من الذاكرة المحلية للهاتف.</p>
-                <p>هذه البيئة تعمل الآن بأعلى كفاءة معالجة رسومية (Offline) دون أي حاجة للاتصال بالإنترنت أو فتح متصفحات خارجية.</p>
-                <div class="status-badge">النظام مستقر وعامل محلياً 100%</div>
-            </div>
-        </body>
-        </html>
-        EOF
-
-    - name: Install Hardened Dependencies
-      run: |
-        npm install --legacy-peer-deps
-
-    - name: Initialize Capacitor Core
-      run: |
-        npx cap init Odysseus com.moayad.odysseus --web-dir=dist
-
-    - name: Inject Android Environment
-      run: |
-        npx cap add android
-
-    - name: Sync Local Static Files
-      run: |
-        npx cap sync android
-
-    - name: Build Final Clean APK
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
-
-    - name: Export Pure Offline APK Package
-      uses: actions/upload-artifact@v4
-      with:
-        name: Odysseus-Pure-Offline-APK
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: Odysseus-App
+          path: app/build/outputs/apk/debug/app-debug.apk
