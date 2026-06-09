@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odysseus Engine</title>
+    <style>
+        :root { --bg: #0b0f19; --container: #111827; --primary: #3b82f6; --accent: #10b981; --text: #f3f4f6; }
+        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 85%; padding: 12px; border-radius: 12px; font-size: 14px; }
+        .ai { background-color: var(--container); align-self: flex-start; border: 1px solid #374151; }
+        .user { background-color: var(--primary); align-self: flex-end; }
+        .controls { padding: 15px; background: var(--container); display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #374151; background: var(--bg); color: white; }
+        button { background: var(--accent); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; }
+        #status { text-align: center; font-size: 12px; color: #9ca3af; padding: 5px; }
+    </style>
+</head>
+<body>
+    <div id="status">جاري تهيئة العقل المحلي...</div>
+    <div id="chat-box">
+        <div class="message ai">مرحباً يا مؤيد. أنا Odysseus، النظام جاهز للمعالجة المحلية.</div>
+    </div>
+    <div class="controls">
+        <input type="text" id="input" placeholder="اكتب استفسارك..." disabled>
+        <button id="send" disabled>إرسال</button>
+    </div>
+
+    <script type="module">
+        import { CreateWebWorkerEngine } from "https://esm.run/@mlc-ai/web-llm";
+        const status = document.getElementById('status');
+        const input = document.getElementById('input');
+        const send = document.getElementById('send');
+        const chatBox = document.getElementById('chat-box');
+
+        let engine;
+        async function init() {
+            try {
+                engine = await CreateWebWorkerEngine(
+                    new Worker(new URL("https://esm.run/@mlc-ai/web-llm", import.meta.url)),
+                    "Llama-3-8B-Instruct-q4f32_1-MLC",
+                    { initProgressCallback: (r) => status.innerText = `تحميل الأوزان: ${Math.round(r.progress * 100)}%` }
+                );
+                status.innerText = "النظام يعمل محلياً بكامل طاقته.";
+                input.disabled = false; send.disabled = false;
+            } catch (e) { status.innerText = "خطأ في المعالج الرسومي (WebGPU)."; }
+        }
+
+        send.onclick = async () => {
+            const text = input.value;
+            chatBox.innerHTML += `<div class="message user">${text}</div>`;
+            input.value = '';
+            const res = await engine.chat.completions.create({ messages: [{role: "user", content: text}] });
+            chatBox.innerHTML += `<div class="message ai">${res.choices[0].message.content}</div>`;
+        };
+        init();
+    </script>
+</body>
+</html>
